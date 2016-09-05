@@ -22,6 +22,11 @@ import matplotlib.pyplot as plt
 STD = 0.35
 
 
+def get_weights(shape):
+    std = 1.0 / np.sqrt(shape[1] + 1)
+    return np.random.normal(scale=std, size=shape)
+
+
 def get_xor():
     X = np.array([[0, 0],
                 [0, 1],

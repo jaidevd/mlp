@@ -14,16 +14,10 @@
 
 """
 
-import numpy as np
 from theano import shared, function
 import theano.tensor as T
-from utils import get_xor_blobs
+from utils import get_xor_blobs, get_weights
 import matplotlib.pyplot as plt
-
-
-def _get_weights(shape):
-    std = 1.0 / np.sqrt(shape[1] + 1)
-    return np.random.normal(scale=std, size=shape)
 
 
 class Backpropagation(object):
@@ -37,9 +31,9 @@ class Backpropagation(object):
         self._y = T.dmatrix('y')
         for i, n in enumerate(layers):
             if i != len(layers) - 1:
-                w = shared(_get_weights((layers[i + 1], n)),
+                w = shared(get_weights((layers[i + 1], n)),
                            name="w{}".format(i))
-                b = shared(_get_weights((layers[i + 1], 1)),
+                b = shared(get_weights((layers[i + 1], 1)),
                            name="b{}".format(i))
                 self.weights.append(w)
                 self.biases.append(b)
@@ -56,6 +50,7 @@ class Backpropagation(object):
 
     def fit(self, X, y, n_iter=1000, showloss=False, meanGrad=True):
         self.losses = []
+        self.predict(X)
         loss = T.sum((self.layer_activations[-1] - self._y.T) ** 2)
         updates = []
         for i in range(len(self.layers) - 1):
