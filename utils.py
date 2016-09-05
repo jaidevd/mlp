@@ -56,7 +56,7 @@ def draw_decision_boundary(bp, X, y):
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
     xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
                         np.arange(y_min, y_max, 0.1))
-    Z = bp.predict(np.c_[xx.ravel(), yy.ravel()]).T
+    Z = bp.predict(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.argmax(axis=1)
     Z = Z.reshape(xx.shape)
     plt.contourf(xx, yy, Z, alpha=0.4)

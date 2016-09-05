@@ -17,6 +17,8 @@
 import numpy as np
 from theano import shared, function
 import theano.tensor as T
+from utils import get_xor_blobs
+import matplotlib.pyplot as plt
 
 
 def _get_weights(shape):
@@ -26,7 +28,7 @@ def _get_weights(shape):
 
 class Backpropagation(object):
 
-    def __init__(self, layers, alpha=0.3):
+    def __init__(self, layers, alpha=0.3, gradcheck=1e-4):
         self.alpha = alpha
         self.layers = layers
         self.weights = []
@@ -52,24 +54,35 @@ class Backpropagation(object):
         self._predict = function([self._x], [self.layer_activations[-1]])
         return self._predict(X)[0].T
 
-    def fit(self, X, y, n_iter=1000, showloss=True):
-        if showloss:
-            self.losses = []
-        self.predict(X)
+    def fit(self, X, y, n_iter=1000, showloss=False, meanGrad=True):
+        self.losses = []
         loss = T.sum((self.layer_activations[-1] - self._y.T) ** 2)
         updates = []
         for i in range(len(self.layers) - 1):
             w = self.weights[i]
             b = self.biases[i]
             grad_w, grad_b = T.grad(loss, [w, b])
-            updates.append((w, w - self.alpha * grad_w / self._x.shape[0]))
-            updates.append((b, b - self.alpha * grad_b / self._x.shape[0]))
+            w_update = self.alpha * grad_w
+            b_update = self.alpha * grad_b
+            if meanGrad:
+                w_update = w_update / self._x.shape[0]
+                b_update = b_update / self._x.shape[0]
+            updates.append((w, w - w_update))
+            updates.append((b, b - b_update))
         self._fit = function([self._x, self._y], [loss], updates=updates)
         for i in xrange(n_iter):
-            print self._fit(X, y)
+            self.losses.append(self._fit(X, y))
+            if showloss:
+                print self.losses[-1]
 
 if __name__ == '__main__':
-    xTrain = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    yTrain = np.array([[1, 0], [0, 1], [0, 1], [1, 0]])
-    bp = Backpropagation(layers=[2, 3, 2])
-    bp.fit(xTrain, yTrain, n_iter=1000000)
+    X, y = get_xor_blobs()
+    bp1 = Backpropagation(layers=[2, 3, 2])
+    bp1.fit(X, y, n_iter=10000, showloss=True)
+    bp2 = Backpropagation(layers=[2, 3, 2])
+    bp2.fit(X, y, n_iter=10000, showloss=True, meanGrad=False)
+    plt.subplot(211), plt.plot(bp1.losses), plt.title("Mean gradient update")
+    plt.xlim(0, 2000)
+    plt.subplot(212), plt.plot(bp2.losses), plt.title("Total gradient update")
+    plt.xlim(0, 2000)
+    plt.show()
