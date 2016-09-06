@@ -16,14 +16,15 @@
 
 from theano import shared, function
 import theano.tensor as T
-from utils import get_xor_blobs, get_weights
-import matplotlib.pyplot as plt
+from utils import get_xor_blobs, get_weights, draw_decision_boundary, get_xor
+from sklearn.preprocessing import StandardScaler
 
 
 class Backpropagation(object):
 
-    def __init__(self, layers, alpha=0.3, gradcheck=1e-4):
+    def __init__(self, layers, alpha=0.3, C=0.0, gradcheck=1e-4):
         self.alpha = alpha
+        self._lambda = C
         self.layers = layers
         self.weights = []
         self.biases = []
@@ -52,6 +53,8 @@ class Backpropagation(object):
         self.losses = []
         self.predict(X)
         loss = T.sum((self.layer_activations[-1] - self._y.T) ** 2)
+        # Adding the regularization term:
+        loss += self._lambda / 2.0 * T.sum([(w ** 2).sum() for w in self.weights])
         updates = []
         for i in range(len(self.layers) - 1):
             w = self.weights[i]
@@ -72,12 +75,10 @@ class Backpropagation(object):
 
 if __name__ == '__main__':
     X, y = get_xor_blobs()
-    bp1 = Backpropagation(layers=[2, 3, 2])
-    bp1.fit(X, y, n_iter=10000, showloss=True)
-    bp2 = Backpropagation(layers=[2, 3, 2])
-    bp2.fit(X, y, n_iter=10000, showloss=True, meanGrad=False)
-    plt.subplot(211), plt.plot(bp1.losses), plt.title("Mean gradient update")
-    plt.xlim(0, 2000)
-    plt.subplot(212), plt.plot(bp2.losses), plt.title("Total gradient update")
-    plt.xlim(0, 2000)
-    plt.show()
+    bp = Backpropagation(layers=[2, 3, 2], C=0.2)
+    bp.fit(X, y, n_iter=500)
+    draw_decision_boundary(bp, X, y)
+    X, y = get_xor()
+    X = StandardScaler().fit_transform(X)
+    draw_decision_boundary(bp, X, y)
+    print bp.predict(X)

@@ -16,7 +16,7 @@
 
 import numpy as np
 from sklearn.datasets import make_blobs
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import matplotlib.pyplot as plt
 
 STD = 0.35
@@ -52,6 +52,7 @@ def get_xor_blobs():
     np.random.shuffle(X)
     y = OneHotEncoder().fit_transform(X[:, 2].reshape(-1, 1))
     X = X[:, :2]
+    X = StandardScaler().fit_transform(X)
     return X, y.toarray()
 
 
