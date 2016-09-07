@@ -16,8 +16,8 @@
 
 from theano import shared, function
 import theano.tensor as T
-from utils import get_xor_blobs, get_weights, draw_decision_boundary, get_xor
-from sklearn.preprocessing import StandardScaler
+from utils import make_circles, get_weights, draw_decision_boundary
+from sklearn.preprocessing import OneHotEncoder
 
 
 class Backpropagation(object):
@@ -74,11 +74,11 @@ class Backpropagation(object):
                 print self.losses[-1]
 
 if __name__ == '__main__':
-    X, y = get_xor_blobs()
-    bp = Backpropagation(layers=[2, 3, 2], C=0.2)
-    bp.fit(X, y, n_iter=500)
+    X, y = make_circles(factor=0.1, noise=0.22)
+    y = OneHotEncoder().fit_transform(y.reshape(-1, 1)).toarray()
+    bp = Backpropagation(layers=[2, 10, 2], C=0.1)
+    bp.fit(X, y, n_iter=100000, showloss=True)
     draw_decision_boundary(bp, X, y)
-    X, y = get_xor()
-    X = StandardScaler().fit_transform(X)
-    draw_decision_boundary(bp, X, y)
-    print bp.predict(X)
+    X, y = make_circles(factor=0.2)
+    y = OneHotEncoder().fit_transform(y.reshape(-1, 1)).toarray()
+    draw_decision_boundary(bp, X, y, marker='x')

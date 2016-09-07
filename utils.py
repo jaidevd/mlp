@@ -15,11 +15,13 @@
 """
 
 import numpy as np
-from sklearn.datasets import make_blobs
+from sklearn.datasets import make_blobs, make_circles
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import matplotlib.pyplot as plt
 
 STD = 0.35
+
+np.random.seed(42)
 
 
 def get_weights(shape):
@@ -56,7 +58,7 @@ def get_xor_blobs():
     return X, y.toarray()
 
 
-def draw_decision_boundary(bp, X, y):
+def draw_decision_boundary(bp, X, y, ax=None, show=True, **kwargs):
     y = np.argmax(y, axis=1)
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
@@ -65,6 +67,15 @@ def draw_decision_boundary(bp, X, y):
     Z = bp.predict(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.argmax(axis=1)
     Z = Z.reshape(xx.shape)
-    plt.contourf(xx, yy, Z, alpha=0.4)
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.add_subplot(211)
+    ax.contourf(xx, yy, Z, alpha=0.4)
+    ax.scatter(X[:, 0], X[:, 1], c=y, **kwargs)
+    if show:
+        plt.show()
+
+if __name__ == '__main__':
+    X, y = make_circles(factor=0.4)
     plt.scatter(X[:, 0], X[:, 1], c=y)
     plt.show()
