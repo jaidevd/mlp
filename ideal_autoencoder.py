@@ -96,6 +96,7 @@ class SparseAutoencoder(object):
         cost = sum_of_squares_error + weight_decay + KL_divergence
 
         KL_div_grad = self.beta * (-(self.rho / rho_cap) + ((1 - self.rho) / (1 - rho_cap)))
+        print "KL_div_grad", KL_div_grad
 
         del_out = numpy.multiply(diff, numpy.multiply(output_layer, 1 - output_layer))
         del_hid = numpy.multiply(numpy.dot(numpy.transpose(W2), del_out) + numpy.transpose(numpy.matrix(KL_div_grad)),
@@ -250,6 +251,7 @@ def executeSparseAutoencoder():
     opt_solution = scipy.optimize.minimize(encoder.sparseAutoencoderCost, encoder.theta,
                                            args=(training_data,), method='L-BFGS-B',
                                            jac=True, options={'maxiter': max_iterations})
+    from IPython import embed; embed()
     opt_theta = opt_solution.x
     opt_W1 = opt_theta[encoder.limit0: encoder.limit1].reshape(hidden_size, visible_size)
 
