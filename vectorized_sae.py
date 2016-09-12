@@ -16,7 +16,9 @@ Simple vectorized autoencoder
 
 import numpy as np
 from utils import get_weights
-from autoencoder import get_digits
+#from autoencoder import get_digits
+from sklearn.datasets import load_digits
+from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
 
@@ -46,6 +48,7 @@ class Autoencoder(object):
     def kl_divergence(self, rhohat):
         kld = self.rho * np.log(self.rho / rhohat) + \
             (1 - self.rho) * np.log((1 - self.rho) / (1 - rhohat))
+        print kld.sum()
         return kld.sum()
 
     def loss(self, X):
@@ -65,6 +68,9 @@ class Autoencoder(object):
             losses.append(loss)
             if showloss:
                 print i, loss
+            if i % 1000 == 0:
+                self.visualize(8, 8, show=False)
+                plt.savefig("{}.png".format(i))
 
             # Update gradients
             del3 = -(X.T - self.a3) * self.a3 * (1 - self.a3)
@@ -91,7 +97,7 @@ class Autoencoder(object):
         fig, ax = plt.subplots(nrows, ncols)
         for i in xrange(nrows):
             for j in xrange(ncols):
-                ax[i, j].imshow(w[:, i + 5 * j].reshape(5, 5),
+                ax[i, j].imshow(w[:, i + 8 * j].reshape(8, 8),
                                 cmap=plt.cm.gray, **kwargs)
                 ax[i, j].set_xticklabels([])
                 ax[i, j].set_yticklabels([])
@@ -101,10 +107,7 @@ class Autoencoder(object):
 
 
 if __name__ == '__main__':
-    ae = Autoencoder(layers=[64, 25, 64], alpha=0.3)
-    X = get_digits()
-    try:
-        ae.fit(X, n_iter=1000000)
-    except KeyboardInterrupt:
-        pass
-    ae.visualize(5, 5, interpolation="nearest")
+    ae = Autoencoder(layers=[64, 64, 64], alpha=0.1, C=0.001)
+    X = load_digits()['data']
+    X = MinMaxScaler().fit_transform(X)
+    ae.fit(X, n_iter=1000000, showloss=False)
